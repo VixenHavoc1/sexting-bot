@@ -3,7 +3,7 @@ uvicorn
 requests
 python-dotenv
 sentence-transformers
-pinecone-client
+pinecone
 sqlalchemy
 pydantic
 passlib
