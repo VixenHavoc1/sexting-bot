@@ -36,9 +36,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 BUCKET = "assets"
 
 # NOWPayments setup
-NOWPAYMENTS_API_KEY = os.getenv("NOWPAYMENTS_API_KEY")
 NOWPAYMENTS_IPN_SECRET = os.getenv("NOWPAYMENTS_IPN_SECRET")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 TIERS = {
     "tier1": 5,
@@ -104,27 +102,23 @@ async def signup(req: Request):
 def health():
     return {"status": "ok"}
 
+# ✅ STATIC PAYMENT LINKS BASED ON TIER
 @app.post("/pay/{user_id}/{tier_id}")
-def initiate_payment(user_id: str, tier_id: str):
+def get_payment_link(user_id: str, tier_id: str):
     if tier_id not in TIERS:
         raise HTTPException(status_code=400, detail="Invalid tier")
+
+    INVOICE_IDS = {
+        "tier1": os.getenv("INVOICE_ID_TIER1", "4369068932"),
+        "tier2": os.getenv("INVOICE_ID_TIER2", "4754412040"),
+        "tier3": os.getenv("INVOICE_ID_TIER3", "4621986133")
+    }
+
+    invoice_id = INVOICE_IDS[tier_id]
     order_id = f"{user_id}:{tier_id}"
-    data = {
-        "price_amount": TIERS[tier_id],
-        "price_currency": "usd",
-        "pay_currency": "trx",
-        "order_id": order_id,
-        "order_description": f"{tier_id} access for {user_id}",
-        "ipn_callback_url": WEBHOOK_URL
-    }
-    headers = {
-        "x-api-key": NOWPAYMENTS_API_KEY,
-        "Content-Type": "application/json"
-    }
-    response = requests.post("https://api.nowpayments.io/v1/payment", json=data, headers=headers)
-    if response.status_code != 200:
-        raise HTTPException(status_code=500, detail="Failed to create payment")
-    return response.json()
+    link = f"https://sandbox.nowpayments.io/payment/?iid=5796502459"
+    print(f"Payment link generated for {user_id}: {link}")
+    return {"payment_link": link}
 
 @app.post("/webhook")
 async def nowpayments_webhook(request: Request):
