@@ -1,10 +1,7 @@
 fastapi
 uvicorn
-requests
-python-dotenv
-sentence-transformers
-pinecone
 sqlalchemy
 pydantic
-passlib
+pinecone
 supabase
+sentence-transformers 
